@@ -53,3 +53,25 @@ var server = http.createServer(invoiceService);
 server.listen(port);
 server.on('error', utils.onError);
 server.on('listening', () => utils.onListening(server,debug));
+
+var kue = require('kue')
+  , queue = kue.createQueue();
+
+queue.process('invoice', function(job, done){
+  generateInvoice(job, done);
+});
+var fs = require('fs');
+function generateInvoice(job, done) {
+  const orderDetail = job.data;
+  console.log(`Generating Invoice for order Id ${orderDetail.orderId}, ${orderDetail.title}`);
+  setTimeout(()=>{
+    fs.writeFile(`${__dirname}/tmp/${orderDetail.orderId}.txt`, JSON.stringify(orderDetail), function(err) {
+      if(err) {
+        console.log(err);
+        done(err);
+      } else {
+        done();
+      }
+    })
+  },2000)
+}

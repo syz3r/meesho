@@ -51,5 +51,5 @@ const port = utils.normalizePort(process.env.ORDER_SERVICE_PORT || '3001');
 orderService.set('port', port);
 var server = http.createServer(orderService);
 server.listen(port);
-server.on('error', utils.onError);
+server.on('error', ()=> utils.onError(port));
 server.on('listening', () => utils.onListening(server,debug));

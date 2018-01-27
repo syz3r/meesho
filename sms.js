@@ -53,3 +53,17 @@ var server = http.createServer(smsService);
 server.listen(port);
 server.on('error', utils.onError);
 server.on('listening', () => utils.onListening(server,debug));
+
+
+
+var kue = require('kue')
+  , queue = kue.createQueue();
+
+queue.process('sms', function(job, done){
+  sendSMS(job.data, done);
+});
+
+function sendSMS(orderDetail, done) {
+  console.log(`SMS sent to ${orderDetail.buyerName} on ${orderDetail.buyerMobile} for order Id ${orderDetail.orderId}, ${orderDetail.title}`);
+  done();
+}

@@ -53,3 +53,27 @@ var server = http.createServer(mailService);
 server.listen(port);
 server.on('error', utils.onError);
 server.on('listening', () => utils.onListening(server,debug));
+
+// kue
+
+var kue = require('kue')
+  , queue = kue.createQueue();
+
+queue.process('mail', function(job, done){
+  sendMail(job, done);
+});
+
+const fs = require('fs');
+function sendMail(job, done) {
+  const orderDetail = job.data;
+  const path = `${__dirname}/tmp/${orderDetail.orderId}.txt`;
+  if(fs.existsSync(path)){
+    console.log(`Email with attachment sent to ${orderDetail.buyerName} on ${orderDetail.buyerEmail} for order Id ${orderDetail.orderId}, ${orderDetail.title}`);
+    done();
+  } else {
+    if(!job._attempts){
+      console.log(`Email without attachment sent to ${orderDetail.buyerName} on ${orderDetail.buyerEmail} for order Id ${orderDetail.orderId}, ${orderDetail.title}`);
+    }
+    return done(new Error('invoice not generated'));
+  }
+}
